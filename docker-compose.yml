@@ -1,19 +1,40 @@
-version: '3.5'
+version: '3.9'
+
+ 
 
 # Services
+
 services:
 
+ 
+
   # PHP FPM Service
+
   php:
-    container_name: php
+
     build:
-      dockerfile: php-dockerfile
+
+      dockerfile: ./docker/php/dockerfile
+
       context: .
+
+    environment:
+
+      SSMTP_MAILHUB: mailhog:1025
+
+      PHP_SENDMAIL_PATH: '"/usr/bin/dos2unix -u | /usr/sbin/ssmtp -t -f"'
+
     volumes:
-      - './public/:/var/www/html'
-      - './logs/php-logging.conf:/usr/local/etc/php-fpm.d/zz-log.conf'
+
+      - './:/var/www/html'
+
     depends_on:
+
       - mariadb
+
+      - mailhog
+
+ 
 
   # Nginx Service
   nginx:
@@ -29,20 +50,43 @@ services:
     depends_on:
       - php
 
+ 
+
   # MariaDB Service
+
   mariadb:
-    container_name: db
-    image: mariadb:10.9
+    image: mariadb:latest
     environment:
-      MYSQL_DATABASE: voorbeeld_db
-      MYSQL_USER: db_user
-      MYSQL_PASSWORD: mijn_p@ss#
-      MYSQL_ROOT_PASSWORD: 4dy5qwtrsag#!sad
-    ports: 
-      - 3307:3306
+        MYSQL_DATABASE: exampledb
+        MYSQL_USER: exampleuser
+        MYSQL_PASSWORD: examplepass
+        MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    ports:
+
+      - 3309:3306
+
     volumes:
-      - './mysqldata:/var/lib/mysql'
+
+      - './docker/mysqldata:/var/lib/mysql'
+
+ 
+
+  # mailhog
+
+  mailhog:
+
+    image: mailhog/mailhog:latest
+
+    ports:
+
+      - 1025:1025
+
+      - 8025:8025
+
+ 
 
 # Volumes
+
 volumes:
+
   mysqldata:
